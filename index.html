@@ -1,0 +1,466 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Alpha Momentum Desk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,400..700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --paper: #EEF1F4; --sheet: #FFFFFF; --ink: #14213D; --ink-2: #4A5670; --rule: #C9D1DA;
+  --buy: #0F7B6C; --sell: #9B2C2C; --warn: #B7791F; --buy-tint: #E3F2EF; --sell-tint: #F6E7E7;
+  --warn-tint: #FBF1DE; --focus: #2F6FDE;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --paper: #0F1624; --sheet: #172033; --ink: #E4E9F2; --ink-2: #9AA6BC; --rule: #2C3850;
+  --buy: #4FC2AE; --sell: #E58A8A; --warn: #E3B261; --buy-tint: #143A35; --sell-tint: #3C2024;
+  --warn-tint: #3A2E17; --focus: #7AA7F5; } }
+:root[data-theme="dark"] {
+  --paper: #0F1624; --sheet: #172033; --ink: #E4E9F2; --ink-2: #9AA6BC; --rule: #2C3850;
+  --buy: #4FC2AE; --sell: #E58A8A; --warn: #E3B261; --buy-tint: #143A35; --sell-tint: #3C2024;
+  --warn-tint: #3A2E17; --focus: #7AA7F5; }
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 400 15px/1.5 "Archivo", system-ui, sans-serif;
+  font-variant-numeric: tabular-nums; }
+a { color: inherit; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.wrap { max-width: 1040px; margin: 0 auto; padding: 0 16px; }
+header { border-bottom: 1px solid var(--rule); background: var(--sheet); }
+.top { display: flex; flex-wrap: wrap; gap: 8px 20px; align-items: baseline; padding: 14px 0 10px; }
+.brand { font-weight: 700; font-stretch: 85%; font-size: 17px; letter-spacing: .01em; }
+.status { display: flex; flex-wrap: wrap; gap: 6px; font-size: 13px; color: var(--ink-2); }
+.pill { border: 1px solid var(--rule); border-radius: 999px; padding: 1px 9px; white-space: nowrap; }
+.pill.good { color: var(--buy); border-color: var(--buy); }
+.pill.bad { color: var(--sell); border-color: var(--sell); }
+.pill.warn { color: var(--warn); border-color: var(--warn); }
+nav { display: flex; gap: 2px; overflow-x: auto; }
+nav button { font: inherit; font-size: 14px; background: none; border: 0; color: var(--ink-2); padding: 8px 12px 10px;
+  border-bottom: 2px solid transparent; cursor: pointer; white-space: nowrap; }
+nav button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--ink); font-weight: 600; }
+main.wrap { padding: 24px 16px 64px; }
+h1 { font-stretch: 80%; font-weight: 700; font-size: 30px; line-height: 1.15; margin: 0 0 4px; letter-spacing: -.005em; }
+h2 { font-stretch: 85%; font-weight: 650; font-size: 19px; margin: 30px 0 10px; }
+.lede { color: var(--ink-2); margin: 0 0 18px; max-width: 70ch; }
+.note { color: var(--ink-2); font-size: 13.5px; }
+.banner { border-left: 3px solid var(--warn); background: var(--warn-tint); padding: 10px 14px; margin: 14px 0; }
+.banner.bad { border-color: var(--sell); background: var(--sell-tint); }
+.empty { color: var(--ink-2); padding: 10px 0; }
+
+/* the order ticket: fields in the order they are typed into IBKR */
+.tickets { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
+.ticket { background: var(--sheet); border: 1px solid var(--rule); border-radius: 6px; position: relative;
+  padding: 14px 16px 12px 22px; }
+.ticket::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 6px; border-radius: 6px 0 0 6px;
+  background: var(--buy); }
+.ticket.sell::before { background: var(--sell); }
+.ticket .head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.sym { font-stretch: 75%; font-weight: 700; font-size: 28px; line-height: 1; }
+.side { font-weight: 600; color: var(--buy); }
+.ticket.sell .side { color: var(--sell); }
+.fields { display: grid; grid-template-columns: auto 1fr; gap: 3px 14px; margin: 12px 0 10px; }
+.fields dt { color: var(--ink-2); font-size: 13px; padding-top: 3px; }
+.fields dd { margin: 0; font-size: 17px; font-weight: 600; }
+.fields dd small { font-weight: 400; color: var(--ink-2); font-size: 12.5px; }
+.ticket .foot { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 13px;
+  color: var(--ink-2); border-top: 1px dashed var(--rule); padding-top: 8px; }
+
+table { border-collapse: collapse; width: 100%; background: var(--sheet); border: 1px solid var(--rule); }
+th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { font-weight: 600; font-size: 13px; color: var(--ink-2); background: var(--paper); position: sticky; top: 0; }
+th.sortable { cursor: pointer; }
+td.n, th.n { text-align: right; }
+tr:last-child td { border-bottom: 0; }
+.tablebox { overflow-x: auto; }
+.why { color: var(--ink-2); font-size: 13px; }
+.up { color: var(--buy); } .down { color: var(--sell); }
+.tag { font-size: 12.5px; padding: 0 6px; border-radius: 4px; background: var(--paper); border: 1px solid var(--rule); }
+.tag.go { color: var(--buy); border-color: var(--buy); background: var(--buy-tint); }
+
+button.btn, label.btn { font: inherit; font-size: 14px; font-weight: 600; border-radius: 5px; padding: 7px 14px; cursor: pointer;
+  border: 1px solid var(--ink); background: var(--ink); color: var(--sheet); display: inline-block; }
+button.btn.quiet { background: transparent; color: var(--ink); border-color: var(--rule); }
+button.btn.small { font-size: 13px; padding: 3px 9px; }
+button.btn:disabled { opacity: .5; cursor: default; }
+form.grid { display: grid; gap: 10px 14px; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  background: var(--sheet); border: 1px solid var(--rule); border-radius: 6px; padding: 14px; }
+form.grid .actions { grid-column: 1 / -1; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+label.f { display: grid; gap: 3px; font-size: 13px; color: var(--ink-2); }
+input, select, textarea { font: inherit; font-size: 15px; color: var(--ink); background: var(--paper); border: 1px solid var(--rule);
+  border-radius: 4px; padding: 6px 8px; width: 100%; }
+textarea { min-height: 110px; font-size: 14px; }
+.toast { position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%); background: var(--ink); color: var(--sheet);
+  padding: 9px 16px; border-radius: 6px; font-size: 14px; max-width: calc(100% - 32px); }
+.spark { width: 100%; height: 160px; background: var(--sheet); border: 1px solid var(--rule); border-radius: 6px; }
+.cols { display: grid; gap: 18px; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+details summary { cursor: pointer; color: var(--ink-2); }
+.hide { display: none !important; }
+@media (prefers-reduced-motion: no-preference) { .toast { transition: opacity .2s; } }
+td.st, th.st { min-width: 220px; }
+@media (max-width: 700px) { [data-c] { display: none; } }
+@media (max-width: 560px) { h1 { font-size: 25px; } .sym { font-size: 24px; } th, td { padding: 6px 7px; } }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="top">
+      <div class="brand">Alpha Momentum Desk</div>
+      <div class="status" id="status"></div>
+    </div>
+    <nav role="tablist" id="tabs">
+      <button role="tab" data-tab="tomorrow" aria-selected="true">Tomorrow</button>
+      <button role="tab" data-tab="holdings">Holdings</button>
+      <button role="tab" data-tab="scores">Scores</button>
+      <button role="tab" data-tab="trades">Trades and equity</button>
+      <button role="tab" data-tab="setup">Setup</button>
+    </nav>
+  </div>
+</header>
+<main class="wrap" id="main" aria-live="polite"></main>
+<div class="toast hide" id="toast" role="status"></div>
+
+<script>
+const OWNER = "trjzd72z5b-jpg", REPO = "alpha-momentum", BRANCH = "main";
+const API = `https://api.github.com/repos/${OWNER}/${REPO}/contents/`;
+const $ = (s, el = document) => el.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const money = x => x == null ? "—" : "$" + Math.round(x).toLocaleString("en-US");
+const px = x => x == null ? "—" : Number(x).toFixed(2);
+const pct = (x, d = 1) => x == null ? "—" : (x * 100).toFixed(d) + "%";
+const dayName = iso => iso ? new Date(iso + "T12:00:00").toLocaleDateString("en-US", {weekday: "short", month: "short", day: "numeric"}) : "—";
+const todayISO = () => new Date().toLocaleDateString("en-CA", {timeZone: "America/Chicago"});
+
+let token = null; try { token = localStorage.getItem("am_token"); } catch (e) {}
+const S = { tab: "tomorrow", latest: null, trades: null, universe: null, settings: null, overrides: null,
+  latch: null, equity: null, sha: {}, sort: {key: "score", dir: -1} };
+try { S.tab = localStorage.getItem("am_tab") || "tomorrow"; } catch (e) {}
+
+// ------------------------------------------------------------- GitHub API
+function b64ToText(b64) {
+  const bin = atob(b64.replace(/\n/g, "")), bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return new TextDecoder().decode(bytes);
+}
+function bytesToB64(bytes) {
+  let s = ""; for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+  return btoa(s);
+}
+async function gh(path, opts = {}) {
+  const r = await fetch(API + path + (opts.method ? "" : `?ref=${BRANCH}`), {
+    ...opts, headers: {Authorization: `Bearer ${token}`, Accept: "application/vnd.github+json",
+      "X-GitHub-Api-Version": "2022-11-28", ...(opts.headers || {})}, cache: "no-store"});
+  if (r.status === 401) throw new Error("The access token was rejected. Enter a new one on the Setup page.");
+  if (r.status === 404) return null;
+  if (!r.ok) throw Object.assign(new Error(`GitHub said ${r.status}: ${(await r.text()).slice(0, 160)}`), {status: r.status});
+  return r.json();
+}
+async function getJSON(path, fallback) {
+  const f = await gh(path);
+  if (!f) return fallback;
+  S.sha[path] = f.sha;
+  let text;
+  if (f.content) text = b64ToText(f.content);
+  else { // over 1 MB: fetch raw
+    const r = await fetch(API + path + `?ref=${BRANCH}`, {headers: {Authorization: `Bearer ${token}`, Accept: "application/vnd.github.raw"}, cache: "no-store"});
+    text = await r.text();
+  }
+  return JSON.parse(text);
+}
+async function putFile(path, b64, message) {
+  const body = {message, content: b64, branch: BRANCH};
+  if (S.sha[path]) body.sha = S.sha[path];
+  const res = await gh(path, {method: "PUT", body: JSON.stringify(body)});
+  S.sha[path] = res.content.sha;
+  return res;
+}
+async function saveJSON(path, obj, message) {
+  const b64 = bytesToB64(new TextEncoder().encode(JSON.stringify(obj, null, 1) + "\n"));
+  try { return await putFile(path, b64, message); }
+  catch (e) {
+    if (e.status !== 409 && e.status !== 422) throw e;
+    throw new Error("Someone else changed this file a moment ago. Reload the page and try again.");
+  }
+}
+
+// ----------------------------------------------------------------- data
+async function load() {
+  if (!token) { S.tab = "setup"; render(); return; }
+  setStatus([pill("Loading…")]);
+  try {
+    const [latest, trades, universe, settings, overrides, latch, equity] = await Promise.all([
+      getJSON("data/out/latest.json", null), getJSON("data/inputs/trades.json", {trades: []}),
+      getJSON("data/inputs/universe.json", {symbols: []}), getJSON("data/inputs/settings.json", {}),
+      getJSON("data/inputs/overrides.json", {classification: {}, earnings: {}}),
+      getJSON("data/inputs/latch.json", {clear_requests: []}), getJSON("data/out/equity.json", [])]);
+    Object.assign(S, {latest, trades, universe, settings, overrides, latch, equity, error: null});
+  } catch (e) { S.error = e.message; }
+  render();
+}
+function pill(text, cls = "") { return `<span class="pill ${cls}">${esc(text)}</span>`; }
+function setStatus(parts) { $("#status").innerHTML = parts.join(""); }
+function toast(msg) {
+  const t = $("#toast"); t.textContent = msg; t.classList.remove("hide");
+  clearTimeout(toast.h); toast.h = setTimeout(() => t.classList.add("hide"), 5000);
+}
+const SAVED = "Saved. The orders recalculate on GitHub in about 3 minutes; reload then.";
+
+// --------------------------------------------------------------- render
+function render() {
+  document.querySelectorAll("#tabs button").forEach(b => b.setAttribute("aria-selected", b.dataset.tab === S.tab));
+  const L = S.latest;
+  if (L) {
+    const dd = L.drawdown, r = L.ratings;
+    setStatus([
+      pill(`Scored ${dayName(L.session_t)}`),
+      pill(L.regime, L.regime === "Favorable" ? "good" : L.regime === "Mixed" ? "warn" : "bad"),
+      pill(`Drawdown ${pct(dd.drawdown, 2)}`, dd.effective === "normal" ? "" : "bad"),
+      pill(r.age_days == null ? "No ratings upload" : `Ratings ${r.age_days} d old`, r.fresh ? "" : "bad"),
+      pill(`Equity ${money(L.equity)}`)]);
+  } else if (token) setStatus([pill("No results yet", "warn")]);
+  else setStatus([pill("Not connected", "warn")]);
+  const m = $("#main");
+  if (S.error) { m.innerHTML = `<div class="banner bad">${esc(S.error)}</div>` + (S.tab === "setup" ? setupView() : ""); bindSetup(); return; }
+  if (!L && S.tab !== "setup") {
+    m.innerHTML = `<h1>Waiting for the first nightly run</h1><p class="lede">The first results appear after the
+      nightly job runs on GitHub. Reload in a few minutes.</p>`; return;
+  }
+  m.innerHTML = ({tomorrow: tomorrowView, holdings: holdingsView, scores: scoresView, trades: tradesView, setup: setupView})[S.tab]();
+  ({holdings: bindHoldings, scores: bindScores, trades: bindTrades, setup: bindSetup, tomorrow: bindTomorrow})[S.tab]?.();
+}
+
+function ticket(e) {
+  return `<article class="ticket">
+    <div class="head"><span class="sym">${esc(e.symbol)}</span><span class="side">Buy ${e.shares}</span></div>
+    <dl class="fields">
+      <dt>Order type</dt><dd>Stop limit, DAY</dd>
+      <dt>Stop price</dt><dd>${px(e.stop_trigger)} <small>high ${px(e.prior_high)} + 1¢</small></dd>
+      <dt>Limit price</dt><dd>${px(e.limit)} <small>+0.5 ATR</small></dd>
+      <dt>Attached stop</dt><dd>${px(e.protective_stop)} <small>sell stop, GTC</small></dd>
+    </dl>
+    <div class="foot"><span>Score ${e.score}, up to ${money(e.max_value)}, risk ${money(e.risk_at_limit)}</span>
+      <button class="btn small quiet" data-copy="${esc(`${e.symbol} BUY ${e.shares} STP LMT stop ${px(e.stop_trigger)} limit ${px(e.limit)} DAY; attached SELL STP ${px(e.protective_stop)} GTC`)}">Copy</button></div>
+  </article>`;
+}
+function tomorrowView() {
+  const L = S.latest, o = L.orders;
+  const flags = L.holdings.filter(h => h.flag);
+  let h = `<h1>Orders for ${dayName(L.next_session)}</h1>
+    <p class="lede">Enter these in IBKR before the open. Scored on the close of ${dayName(L.session_t)}; updated ${new Date(L.generated_at).toLocaleString("en-US", {timeZone: "America/Chicago", hour: "numeric", minute: "2-digit", month: "short", day: "numeric"})} Central.</p>`;
+  const now = new Date(), ct = now.toLocaleString("en-US", {timeZone: "America/Chicago", hour12: false, hour: "2-digit", minute: "2-digit"});
+  if (L.next_session < todayISO() || (L.next_session === todayISO() && ct >= "08:30"))
+    h += `<div class="banner">These orders were for the session that has already opened. Tonight's run, after the close, plans the next one.</div>`;
+  if (L.entries_blocked.length) h += `<div class="banner">No new entries: ${esc(L.entries_blocked.join("; "))}.</div>`;
+  if (flags.length) h += `<div class="banner bad">Stop likely hit on ${flags.map(f => esc(f.symbol)).join(", ")}. Confirm the fill on the Holdings page so equity is exact.</div>`;
+  h += `<h2>Entries</h2>` + (o.entries.length ? `<div class="tickets">${o.entries.map(ticket).join("")}</div>`
+       : `<p class="empty">No entry orders. ${L.entries_blocked.length ? "" : "No pick passed every gate tonight."}</p>` + closest(L));
+  h += `<h2>Exits at the open</h2>`;
+  const ex = o.exits.map(x => `<tr><td><b>${esc(x.symbol)}</b></td><td class="n">${x.shares}</td><td>Market on open</td><td class="why">${esc(x.reasons.join("; "))}</td></tr>`)
+    .concat(o.trims.map(x => `<tr><td><b>${esc(x.symbol)}</b></td><td class="n">${x.shares}</td><td>Market on open</td><td class="why">trim to the 10% cap</td></tr>`));
+  h += ex.length ? `<div class="tablebox"><table><thead><tr><th>Sell</th><th class="n">Shares</th><th>Order</th><th>Why</th></tr></thead><tbody>${ex.join("")}</tbody></table></div>`
+       : `<p class="empty">Nothing to sell.</p>`;
+  h += `<h2>Stop moves</h2>` + (o.stop_moves.length ? `<div class="tablebox"><table><thead><tr><th>Symbol</th><th class="n">From</th><th class="n">To</th><th>Why</th></tr></thead><tbody>${
+      o.stop_moves.map(s => `<tr><td><b>${esc(s.symbol)}</b></td><td class="n">${px(s.from)}</td><td class="n">${px(s.to)}</td><td class="why">${s.why === "trail" ? "trailing: highest close − 2 ATR" : "breakeven after a 2R gain"}</td></tr>`).join("")
+    }</tbody></table></div>` : `<p class="empty">No stops to raise.</p>`);
+  if (L.problems.length) h += `<h2>Data problems</h2><details ${L.problems.length < 6 ? "open" : ""}><summary>${L.problems.length} noted</summary><ul>${L.problems.map(p => `<li class="why">${esc(p)}</li>`).join("")}</ul></details>`;
+  return h;
+}
+function closest(L) {
+  const top = L.scores.filter(r => r.score && !r.held).sort((a, b) => b.score.total - a.score.total).slice(0, 3);
+  if (!top.length) return "";
+  return `<p class="note">Closest to qualifying: ${top.map(r => `<b>${esc(r.symbol)}</b> ${r.score.total}${r.gates_failed.length ? ` (${esc(r.gates_failed[0])})` : r.status ? ` (${esc(r.status.replace(/^eligible, but /, ""))})` : ""}`).join(", ")}.</p>`;
+}
+function bindTomorrow() {
+  document.querySelectorAll("[data-copy]").forEach(b => b.onclick = async () => {
+    try { await navigator.clipboard.writeText(b.dataset.copy); toast("Order copied."); } catch (e) { toast(b.dataset.copy); }
+  });
+}
+
+function holdingsView() {
+  const L = S.latest, H = L.holdings;
+  let h = `<h1>Holdings</h1><p class="lede">${H.length ? `${H.length} open position${H.length > 1 ? "s" : ""}, ${money(L.invested)} invested, ${money(L.cash)} cash.` : "No open positions."} Log every fill here so stops, exits and equity stay right.</p>`;
+  if (H.length) h += `<div class="tablebox"><table><thead><tr><th>Symbol</th><th class="n">Shares</th><th class="n">Entry</th><th class="n">Mark</th><th class="n">P&amp;L</th><th class="n">Stop</th><th class="n">Days</th><th>Next earnings</th><th>Status</th></tr></thead><tbody>${
+    H.map(x => { const pl = x.mark ? (x.mark - x.entry_price) * x.shares : null;
+      const st = x.flag ? `<span class="down">Stop likely hit ${dayName(x.flag.date)}</span> <button class="btn small" data-confirm="${esc(x.symbol)}">Log the sell</button>`
+        : x.exit_reasons.length ? `<span class="down">Sell at the open</span><div class="why">${esc(x.exit_reasons.join("; "))}</div>` : (x.notes.join("; ") || "Hold");
+      return `<tr><td><b>${esc(x.symbol)}</b></td><td class="n">${x.shares}</td><td class="n">${px(x.entry_price)}</td><td class="n">${px(x.mark)}</td>
+        <td class="n ${pl >= 0 ? "up" : "down"}">${money(pl)}</td><td class="n">${px(x.stop)}</td><td class="n">${x.sessions_held}</td>
+        <td>${nextEarn(x.symbol)}</td><td>${st}</td></tr>`; }).join("")}</tbody></table></div>`;
+  const recs = Object.fromEntries((L.orders.entries || []).map(e => [e.symbol, e]));
+  h += `<h2>Log a fill</h2>
+  <form class="grid" id="fill">
+    <label class="f">Symbol<input name="symbol" list="syms" required autocomplete="off" autocapitalize="characters"></label>
+    <label class="f">Side<select name="side"><option>BUY</option><option>SELL</option></select></label>
+    <label class="f">Date<input name="date" type="date" required value="${todayISO()}"></label>
+    <label class="f">Shares<input name="shares" type="number" min="1" step="1" required inputmode="numeric"></label>
+    <label class="f">Fill price<input name="price" type="number" min="0.01" step="0.0001" required inputmode="decimal"></label>
+    <label class="f">Commission<input name="commission" type="number" min="0" step="0.01" value="1.00" inputmode="decimal"></label>
+    <label class="f" id="stopbox">Initial stop<input name="stop" type="number" min="0.01" step="0.01" inputmode="decimal"></label>
+    <div class="actions"><button class="btn" type="submit">Save fill</button><span class="note" id="fillnote">For a buy, the initial stop fills in from tonight's ticket.</span></div>
+    <datalist id="syms">${(S.universe.symbols || []).map(s => `<option value="${esc(s)}">`).join("")}</datalist>
+  </form>`;
+  S._recs = recs;
+  return h;
+}
+function nextEarn(sym) {
+  const row = S.latest.scores.find(r => r.symbol === sym);
+  const e = row && row.next_earnings; return e ? `${dayName(e.date)} <span class="why">${e.timing === "BMO" ? "before open" : e.timing === "AMC" ? "after close" : "during day"}</span>` : "—";
+}
+function bindHoldings() {
+  const f = $("#fill"); if (!f) return;
+  const sync = () => {
+    const buy = f.side.value === "BUY"; $("#stopbox").classList.toggle("hide", !buy); f.stop.required = buy;
+    const r = S._recs[(f.symbol.value || "").toUpperCase()];
+    if (buy && r && !f.stop.value) { f.stop.value = r.protective_stop; if (!f.shares.value) f.shares.value = r.shares; }
+  };
+  f.side.onchange = sync; f.symbol.oninput = sync; sync();
+  document.querySelectorAll("[data-confirm]").forEach(b => b.onclick = () => {
+    const x = S.latest.holdings.find(h => h.symbol === b.dataset.confirm);
+    f.symbol.value = x.symbol; f.side.value = "SELL"; f.date.value = x.flag.date; f.shares.value = x.shares;
+    f.price.value = x.flag.est_price; sync(); f.price.focus(); toast("Check the fill price against IBKR, then save.");
+  });
+  f.onsubmit = async ev => {
+    ev.preventDefault();
+    const d = Object.fromEntries(new FormData(f));
+    const t = {id: crypto.randomUUID(), date: d.date, symbol: d.symbol.trim().toUpperCase(), side: d.side,
+      shares: parseInt(d.shares, 10), price: parseFloat(d.price), commission: parseFloat(d.commission || 0),
+      stop: d.side === "BUY" ? parseFloat(d.stop) : null, logged_at: new Date().toISOString()};
+    if (t.side === "BUY" && !(t.stop < t.price)) { toast("The initial stop must be below the fill price."); return; }
+    const btn = f.querySelector("button[type=submit]"); btn.disabled = true;
+    try {
+      const fresh = await getJSON("data/inputs/trades.json", {trades: []});
+      fresh.trades.push(t);
+      await saveJSON("data/inputs/trades.json", fresh, `Log ${t.side.toLowerCase()} ${t.shares} ${t.symbol} @ ${t.price}`);
+      S.trades = fresh; f.reset(); f.date.value = todayISO(); toast(SAVED);
+    } catch (e) { toast(e.message); } finally { btn.disabled = false; }
+  };
+}
+
+const COMP = [["rs20", "RS20"], ["rs5", "RS5"], ["trend", "Trend"], ["breakout", "Brk"], ["volume", "Vol"], ["closing", "Close"], ["quant", "Quant pts"]];
+function scoresView() {
+  const L = S.latest, k = S.sort.key, dir = S.sort.dir;
+  const val = r => k === "score" ? (r.score ? r.score.total : -1) : k === "symbol" ? r.symbol : k === "quant" ? (r.quant ?? -1) : (r.score ? r.score[k] : -1);
+  const rows = [...L.scores].sort((a, b) => (val(a) > val(b) ? 1 : val(a) < val(b) ? -1 : 0) * dir);
+  const th = (key, label, n = true) => `<th class="sortable ${n ? "n" : ""}" data-sort="${key}" aria-sort="${k === key ? (dir > 0 ? "ascending" : "descending") : "none"}">${label}</th>`;
+  return `<h1>Scores</h1><p class="lede">Every pick on the close of ${dayName(L.session_t)}. Entries need ${L.entry_score_min} points and every gate.</p>
+  <div class="tablebox"><table><thead><tr>${th("symbol", "Symbol", false)}${th("score", "Score")}${COMP.map(([c, l]) => th(c, l).replace("<th ", "<th data-c ")).join("")}${th("quant", "SA Quant")}<th class="st">Status</th></tr></thead><tbody>${
+    rows.map(r => `<tr><td><b>${esc(r.symbol)}</b><div class="why">${esc(r.industry || "")}</div></td>
+      <td class="n"><b>${r.score ? r.score.total : "—"}</b></td>${COMP.map(([c]) => `<td class="n" data-c>${r.score ? Math.round(r.score[c]) : "—"}</td>`).join("")}
+      <td class="n">${r.quant ?? "—"}</td>
+      <td>${r.status === "entry order recommended" ? `<span class="tag go">Entry order</span>` : `<span class="why">${esc(r.status)}${r.gates_failed.length ? ": " + esc(r.gates_failed.join("; ")) : ""}</span>`}</td></tr>`).join("")
+  }</tbody></table></div>`;
+}
+function bindScores() {
+  document.querySelectorAll("[data-sort]").forEach(t => t.onclick = () => {
+    const key = t.dataset.sort; S.sort = {key, dir: S.sort.key === key ? -S.sort.dir : (key === "symbol" ? 1 : -1)}; render();
+  });
+}
+
+function sparkline(eq) {
+  if (eq.length < 2) return `<p class="empty">The equity curve starts after two nightly runs.</p>`;
+  const W = 640, H = 160, P = 14, ys = eq.map(e => e.equity), sp = eq.map(e => e.spy);
+  const s0 = sp.find(v => v), spyEq = sp.map(v => v && s0 ? ys[0] * v / s0 : null);
+  const all = ys.concat(spyEq.filter(v => v)), lo = Math.min(...all), hi = Math.max(...all) || 1;
+  const X = i => P + i * (W - 2 * P) / (eq.length - 1), Y = v => H - P - (v - lo) / ((hi - lo) || 1) * (H - 2 * P);
+  const line = arr => arr.map((v, i) => v == null ? "" : `${i && arr[i - 1] != null ? "L" : "M"}${X(i).toFixed(1)} ${Y(v).toFixed(1)}`).join("");
+  return `<svg class="spark" viewBox="0 0 ${W} ${H}" role="img" aria-label="Equity against SPY">
+    <path d="${line(spyEq)}" fill="none" stroke="var(--rule)" stroke-width="2"/>
+    <path d="${line(ys)}" fill="none" stroke="var(--ink)" stroke-width="2"/>
+    <text x="${P}" y="18" font-size="12" fill="var(--ink-2)">Equity ${money(ys.at(-1))}; SPY scaled to the start in grey</text></svg>`;
+}
+function tradesView() {
+  const L = S.latest, T = (S.trades.trades || []).filter(t => !t.deleted).slice().reverse(), C = L.closed_trades;
+  const wins = C.filter(c => c.pnl > 0).length, tot = C.reduce((a, c) => a + c.pnl, 0);
+  return `<h1>Trades and equity</h1><p class="lede">${C.length ? `${C.length} closed trades, ${wins} winners, net ${money(tot)}.` : "No closed trades yet."} Starting equity ${money(S.settings.starting_equity)}.</p>
+  ${sparkline(S.equity || [])}
+  <h2>Closed trades</h2>${C.length ? `<div class="tablebox"><table><thead><tr><th>Symbol</th><th>Entry</th><th>Exit</th><th class="n">Shares</th><th class="n">Entry</th><th class="n">Exit</th><th class="n">P&amp;L</th><th class="n">R</th></tr></thead><tbody>${
+    C.slice().reverse().map(c => `<tr><td><b>${esc(c.symbol)}</b></td><td>${dayName(c.entry_date)}</td><td>${dayName(c.exit_date)}</td><td class="n">${c.shares}</td><td class="n">${px(c.entry_price)}</td><td class="n">${px(c.exit_price)}</td><td class="n ${c.pnl >= 0 ? "up" : "down"}">${money(c.pnl)}</td><td class="n">${c.r_multiple ?? "—"}</td></tr>`).join("")}</tbody></table></div>` : `<p class="empty">None yet.</p>`}
+  <h2>Fill log</h2>${T.length ? `<div class="tablebox"><table><thead><tr><th>Date</th><th>Symbol</th><th>Side</th><th class="n">Shares</th><th class="n">Price</th><th class="n">Stop</th><th></th></tr></thead><tbody>${
+    T.map(t => `<tr><td>${dayName(t.date)}</td><td><b>${esc(t.symbol)}</b></td><td class="${t.side === "BUY" ? "up" : "down"}">${t.side}</td><td class="n">${t.shares}</td><td class="n">${px(t.price)}</td><td class="n">${t.stop ? px(t.stop) : ""}</td><td><button class="btn small quiet" data-del="${esc(t.id)}">Remove</button></td></tr>`).join("")}</tbody></table></div>` : `<p class="empty">No fills logged.</p>`}
+  <p><button class="btn quiet" id="csv">Download fills as CSV</button></p>`;
+}
+function bindTrades() {
+  document.querySelectorAll("[data-del]").forEach(b => b.onclick = async () => {
+    if (!confirm("Remove this fill from the log? It stays in the file's history.")) return;
+    try {
+      const fresh = await getJSON("data/inputs/trades.json", {trades: []});
+      const t = fresh.trades.find(x => x.id === b.dataset.del); if (!t) return;
+      t.deleted = true; t.deleted_at = new Date().toISOString();
+      await saveJSON("data/inputs/trades.json", fresh, `Remove fill ${t.side} ${t.shares} ${t.symbol}`);
+      S.trades = fresh; render(); toast(SAVED);
+    } catch (e) { toast(e.message); }
+  });
+  const c = $("#csv"); if (c) c.onclick = () => {
+    const rows = [["date", "symbol", "side", "shares", "price", "commission", "stop", "deleted"]].concat(
+      (S.trades.trades || []).map(t => [t.date, t.symbol, t.side, t.shares, t.price, t.commission, t.stop ?? "", t.deleted ? "yes" : ""]));
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([rows.map(r => r.join(",")).join("\n")], {type: "text/csv"}));
+    a.download = "alpha-momentum-fills.csv"; a.click();
+  };
+}
+
+function setupView() {
+  const L = S.latest, r = L && L.ratings, dd = L && L.drawdown;
+  return `<h1>Setup</h1>
+  <div class="cols">
+  <section><h2>Access</h2>
+    <p class="note">The dashboard reads and saves your data in the private repository with a fine-grained GitHub token. It is kept only in this browser.</p>
+    <form class="grid" id="tok"><label class="f" style="grid-column:1/-1">Token<input name="t" type="password" autocomplete="off" placeholder="${token ? "A token is saved on this device" : "github_pat_…"}"></label>
+    <div class="actions"><button class="btn" type="submit">Save token</button>${token ? `<button class="btn quiet" type="button" id="forget">Forget on this device</button>` : ""}</div></form>
+  </section>
+  ${L ? `<section><h2>Seeking Alpha ratings</h2>
+    <p class="note">Current upload: ${r.file ? `${esc(r.file)}, ${r.age_days} day${r.age_days === 1 ? "" : "s"} old` : "none"}. Upload a new export at least weekly; after 8 days new entries stop.</p>
+    <form class="grid" id="upl"><label class="f" style="grid-column:1/-1">Alpha Picks portfolio export (.xlsx)<input name="file" type="file" accept=".xlsx" required></label>
+    <div class="actions"><button class="btn" type="submit">Upload</button></div></form></section>` : ""}
+  </div>
+  ${L ? `<div class="cols">
+  <section><h2>Alpha Picks list</h2><p class="note">One symbol per line. Removing a held pick makes it an exit at the next open.</p>
+    <form class="grid" id="uni"><label class="f" style="grid-column:1/-1">${(S.universe.symbols || []).length} picks<textarea name="u">${esc((S.universe.symbols || []).join("\n"))}</textarea></label>
+    <div class="actions"><button class="btn" type="submit">Save list</button></div></form></section>
+  <section><h2>Drawdown latch</h2>
+    <p class="note">${dd.latch ? `Latched at the ${dd.latch === "halt" ? "6%" : "8%"} level since ${dayName(dd.latch_since)}. Clearing it needs a review note${dd.latch === "liquidate" ? ", 5 sessions of observation and your explicit authorization" : ""}.` : "Not latched. Nothing to clear."}</p>
+    ${dd.latch ? `<form class="grid" id="latch"><label class="f" style="grid-column:1/-1">Review note<input name="note" required></label>
+      ${dd.latch === "liquidate" ? `<label class="f" style="grid-column:1/-1"><span><input type="checkbox" name="auth" style="width:auto"> I authorize restarting new entries</span></label>` : ""}
+      <div class="actions"><button class="btn" type="submit">Clear the latch</button></div></form>` : ""}
+    ${dd.notes && dd.notes.length ? `<p class="note">${esc(dd.notes.join("; "))}</p>` : ""}</section>
+  </div>` : ""}`;
+}
+function bindSetup() {
+  const t = $("#tok"); if (t) t.onsubmit = ev => { ev.preventDefault(); const v = t.t.value.trim(); if (!v) return;
+    token = v; try { localStorage.setItem("am_token", v); } catch (e) {} toast("Token saved on this device."); S.tab = "tomorrow"; load(); };
+  const fg = $("#forget"); if (fg) fg.onclick = () => { try { localStorage.removeItem("am_token"); } catch (e) {} token = null; S.latest = null; toast("Token removed from this device."); render(); };
+  const u = $("#upl"); if (u) u.onsubmit = async ev => {
+    ev.preventDefault(); const file = u.file.files[0]; if (!file) return;
+    const btn = u.querySelector("button"); btn.disabled = true;
+    try {
+      const stamp = new Date().toISOString().replace(/[-:]/g, "").slice(0, 15) + "Z";
+      const b64 = bytesToB64(new Uint8Array(await file.arrayBuffer()));
+      await putFile(`data/inputs/ratings/ratings-${stamp}.xlsx`, b64, `Upload Seeking Alpha export ${stamp}`);
+      u.reset(); toast(SAVED);
+    } catch (e) { toast(e.message); } finally { btn.disabled = false; }
+  };
+  const un = $("#uni"); if (un) un.onsubmit = async ev => {
+    ev.preventDefault();
+    const syms = [...new Set(un.u.value.split(/[\s,]+/).map(s => s.trim().toUpperCase()).filter(Boolean))];
+    try { await getJSON("data/inputs/universe.json", {});
+      await saveJSON("data/inputs/universe.json", {symbols: syms, updated: todayISO()}, `Pick list: ${syms.length} symbols`);
+      S.universe = {symbols: syms}; toast(SAVED); } catch (e) { toast(e.message); }
+  };
+  const la = $("#latch"); if (la) la.onsubmit = async ev => {
+    ev.preventDefault();
+    try { const fresh = await getJSON("data/inputs/latch.json", {clear_requests: []});
+      fresh.clear_requests.push({id: crypto.randomUUID(), date: todayISO(), note: la.note.value, authorize_restart: !!(la.auth && la.auth.checked)});
+      await saveJSON("data/inputs/latch.json", fresh, "Request to clear the drawdown latch"); toast(SAVED); } catch (e) { toast(e.message); }
+  };
+}
+
+document.querySelectorAll("#tabs button").forEach(b => b.onclick = () => {
+  S.tab = b.dataset.tab; try { localStorage.setItem("am_tab", S.tab); } catch (e) {} render(); window.scrollTo(0, 0);
+});
+load();
+</script>
+</body>
+</html>
